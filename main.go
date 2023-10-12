@@ -112,7 +112,7 @@ func main() {
 	}
 
 	currentTime := time.Now()
-	fmt.Println(currentTime)
+	// fmt.Println(currentTime)
 
 	i := 0
 	rowsCnt := 0
@@ -160,24 +160,16 @@ func main() {
 		precipitationColor := color.New(color.FgGreen).Sprintf("%.0f%%", precipitation)
 		windspeedColor := color.New(color.FgBlue).Sprintf("%.1fkm/h", windspeed)
 
-		// Define column sizes
-		timeColumnSize := 6
-		temperatureColumnSize := 10
-		windspeedColumnSize := 10
-		precipitationColumnSize := 13
-		weatherColumnSize := 10
-
-		// Format and print the output
-		formatString := fmt.Sprintf(
-			"%%-%ds %%-%ds %%-%ds %%-%ds  %%-%ds\n",
-			timeColumnSize,
-			temperatureColumnSize,
-			windspeedColumnSize,
-			precipitationColumnSize,
-			weatherColumnSize,
+		formattedRow := fmt.Sprintf(
+			"%7v %15v %15v %12v %s",
+			formattedHour,
+			temperatureColor,
+			windspeedColor,
+			precipitationColor,
+			weatherState,
 		)
 
-		fmt.Printf(formatString, formattedHour, temperatureColor, windspeedColor, precipitationColor, weatherState)
+		fmt.Println(formattedRow)
 		i += 1
 		rowsCnt += 1
 	}
