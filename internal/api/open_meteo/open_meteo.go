@@ -38,11 +38,15 @@ type Location struct {
 	Lat, Lng float64
 }
 
+func (l Location) GetTimeZone() string {
+	return timezonemapper.LatLngToTimezoneString(l.Lat, l.Lng)
+}
+
 func createURL(loc Location) string {
 	// Add coordinates
 	url := fmt.Sprintf("%s?latitude=%f&longitude=%f", apiURL, loc.Lat, loc.Lng)
 	// Add timezone
-	timezone := timezonemapper.LatLngToTimezoneString(loc.Lat, loc.Lng)
+	timezone := loc.GetTimeZone()
 	url = fmt.Sprintf("%s&timezone=%s", url, timezone)
 	// Add other constant filters
 	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"

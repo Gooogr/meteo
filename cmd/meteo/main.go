@@ -7,7 +7,6 @@ import (
 
 	meteo "github.com/Gooogr/meteo/internal/api/open_meteo"
 	"github.com/Gooogr/meteo/internal/display"
-	"github.com/zsefvlol/timezonemapper"
 )
 
 // TODO:
@@ -16,7 +15,8 @@ import (
 // Take this coords from config next times. Also user can pass lat and long or city directly
 
 func main() {
-	// Get coordinates
+	// Get coordinates from yaml
+	// https://stackoverflow.com/a/63829704
 	latFlag := flag.Float64("lat", 55.7522, "Latitude coordinate")
 	lngFlag := flag.Float64("lng", 37.6156, "Longitude coordinate")
 	flag.Parse()
@@ -35,13 +35,14 @@ func main() {
 	}
 
 	// Request forecast
-	weatherData, err := meteo.GetWeatherData(meteo.Location{Lat: lat, Lng: lng})
+	loc := meteo.Location{Lat: lat, Lng: lng}
+	weatherData, err := meteo.GetWeatherData(loc)
 	if err != nil {
 		fmt.Printf("Error fetching weather data: %v\n", err)
 		os.Exit(1)
 	}
 
-	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
+	timezone := loc.GetTimeZone()
 	display.PrintWeatherForecast(weatherData, timezone)
 
 }
