@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Gooogr/meteo/internal/api/display"
 	meteo "github.com/Gooogr/meteo/internal/api/open_meteo"
+	"github.com/Gooogr/meteo/internal/display"
 	"github.com/zsefvlol/timezonemapper"
 )
 
