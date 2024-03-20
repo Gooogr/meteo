@@ -1,3 +1,5 @@
+github.com/Gooogr/meteo v0.0.0-20240320175347-46aacd9cd740 h1:kMDeXnaDpX23riMF5RplNY3bKrGcBFCt4FJGfwzlJrQ=
+github.com/Gooogr/meteo v0.0.0-20240320175347-46aacd9cd740/go.mod h1:pRjQPa3nLG051G59rcHWPrkrji1AXDy4NWVtq5IxnuU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

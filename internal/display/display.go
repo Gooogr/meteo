@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/color"
 
-	meteo "github.com/Gooogr/meteo/internal/api/open_meteo"
+	meteo "meteo/internal/api/open_meteo"
 )
 
 const maxRows = 12

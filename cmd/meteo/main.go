@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	meteo "meteo/internal/api/open_meteo"
+	"meteo/internal/config"
+	"meteo/internal/display"
 	"os"
-
-	meteo "github.com/Gooogr/meteo/internal/api/open_meteo"
-	"github.com/Gooogr/meteo/internal/config"
-	"github.com/Gooogr/meteo/internal/display"
+	// "github.com/Gooogr/meteo/internal/config"
+	// "github.com/Gooogr/meteo/internal/display"
 )
 
 // TODO:
