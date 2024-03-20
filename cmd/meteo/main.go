@@ -1,11 +1,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
 	meteo "github.com/Gooogr/meteo/internal/api/open_meteo"
+	"github.com/Gooogr/meteo/internal/config"
 	"github.com/Gooogr/meteo/internal/display"
 )
 
@@ -16,13 +16,9 @@ import (
 
 func main() {
 	// Get coordinates from yaml
-	// https://stackoverflow.com/a/63829704
-	latFlag := flag.Float64("lat", 55.7522, "Latitude coordinate")
-	lngFlag := flag.Float64("lng", 37.6156, "Longitude coordinate")
-	flag.Parse()
-
-	lat := *latFlag
-	lng := *lngFlag
+	cfg := config.ReadConfig()
+	lat := cfg.Latitude
+	lng := cfg.Longitude
 
 	// Check for valid latitude and longitude
 	if lat < -90 || lat > 90 {
