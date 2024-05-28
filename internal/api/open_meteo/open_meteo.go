@@ -22,16 +22,16 @@ type HourlyUnitsData struct {
 	Time                     string `json:"time"`
 	Temperature2m            string `json:"temperature_2m"`
 	PrecipitationProbability string `json:"precipitation_probability"`
-	Weathercode              string `json:"weathercode"`
-	Windspeed10m             string `json:"windspeed_10m"`
+	WeatherCode              string `json:"weathercode"`
+	WindSpeed10m             string `json:"windspeed_10m"`
 }
 
 type HourlyData struct {
 	Time                     []string  `json:"time"` // TODO: convert directly to time.Time
 	Temperature2m            []float64 `json:"temperature_2m"`
 	PrecipitationProbability []float64 `json:"precipitation_probability"`
-	Weathercode              []int     `json:"weathercode"`
-	Windspeed10m             []float64 `json:"windspeed_10m"`
+	WeatherCode              []int     `json:"weathercode"`
+	WindSpeed10m             []float64 `json:"windspeed_10m"`
 }
 
 type Location struct {

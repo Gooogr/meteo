@@ -51,11 +51,11 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 	for i < len(weather.Hourly.Time) {
 		datetime := weather.Hourly.Time[i]
 		temperature := weather.Hourly.Temperature2m[i]
-		weathercode := weather.Hourly.Weathercode[i]
-		precipitation := weather.Hourly.PrecipitationProbability[i]
-		windspeed := weather.Hourly.Windspeed10m[i]
+		weatherCode := weather.Hourly.WeatherCode[i]
+		precipitationProbability := weather.Hourly.PrecipitationProbability[i]
+		windSpeed := weather.Hourly.WindSpeed10m[i]
 
-		weatherState, ok := weatherCodes[weathercode]
+		weatherState, ok := weatherCodes[weatherCode]
 		if !ok {
 			weatherState = ""
 		}
@@ -83,25 +83,32 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 		formattedHour := fmt.Sprintf("%02d:00", hour)
 
 		temperatureColor := color.New(color.FgCyan).Sprintf("%.1f°C", temperature)
-		precipitationColor := color.New(color.FgGreen).Sprintf("%.0f%%", precipitation)
-		windspeedColor := color.New(color.FgBlue).Sprintf("%.1fkm/h", windspeed)
+		precipitationProbabilityColor := color.New(color.FgGreen).Sprintf("%.0f%%", precipitationProbability)
+		windSpeedColor := color.New(color.FgBlue).Sprintf("%.1fkm/h", windSpeed)
 
 		timeColumnSize := 6
 		temperatureColumnSize := 10
-		windspeedColumnSize := 10
-		precipitationColumnSize := 13
+		windSpeedColumnSize := 10
+		precipitationProbablityColumnSize := 13
 		weatherColumnSize := 10
 
 		formatString := fmt.Sprintf(
 			"%%-%ds %%-%ds %%-%ds %%-%ds  %%-%ds\n",
 			timeColumnSize,
 			temperatureColumnSize,
-			windspeedColumnSize,
-			precipitationColumnSize,
+			windSpeedColumnSize,
+			precipitationProbablityColumnSize,
 			weatherColumnSize,
 		)
 
-		fmt.Printf(formatString, formattedHour, temperatureColor, windspeedColor, precipitationColor, weatherState)
+		fmt.Printf(
+			formatString,
+			formattedHour,
+			temperatureColor,
+			windSpeedColor,
+			precipitationProbabilityColor,
+			weatherState,
+		)
 		i += 1
 		rowsCnt += 1
 	}
