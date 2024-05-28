@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/fatih/color"
-
 	meteo "meteo/internal/api/open_meteo"
+
+	"github.com/fatih/color"
 )
 
 const maxRows = 12

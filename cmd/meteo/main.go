@@ -6,8 +6,8 @@ import (
 	"meteo/internal/config"
 	"meteo/internal/display"
 	"os"
-	// "github.com/Gooogr/meteo/internal/config"
-	// "github.com/Gooogr/meteo/internal/display"
+
+	"github.com/zsefvlol/timezonemapper"
 )
 
 // TODO:
@@ -32,14 +32,13 @@ func main() {
 	}
 
 	// Request forecast
-	loc := meteo.Location{Lat: lat, Lng: lng}
-	weatherData, err := meteo.GetWeatherData(loc)
+	weatherData, err := meteo.GetOpenMeteoData(lat, lng)
 	if err != nil {
 		fmt.Printf("Error fetching weather data: %v\n", err)
 		os.Exit(1)
 	}
 
-	timezone := loc.GetTimeZone()
+	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
 	display.PrintWeatherForecast(weatherData, timezone)
 
 }

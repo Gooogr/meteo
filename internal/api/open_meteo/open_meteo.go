@@ -34,42 +34,50 @@ type HourlyData struct {
 	WindSpeed10m             []float64 `json:"windspeed_10m"`
 }
 
-type Location struct {
-	Lat, Lng float64
-}
-
-func (l Location) GetTimeZone() string {
-	return timezonemapper.LatLngToTimezoneString(l.Lat, l.Lng)
-}
-
-func createURL(loc Location) string {
-	// Add coordinates
-	url := fmt.Sprintf("%s?latitude=%f&longitude=%f", apiURL, loc.Lat, loc.Lng)
-	// Add timezone
-	timezone := loc.GetTimeZone()
-	url = fmt.Sprintf("%s&timezone=%s", url, timezone)
-	// Add other constant filters
+func createURL(lat float64, lng float64) string {
+	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
+	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
 	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
 	return url
 }
 
-func GetWeatherData(loc Location) (WeatherData, error) {
+type httpClient interface {
+	Get(string) (*http.Response, error)
+}
+
+type openMeteoGiver struct {
+	client httpClient
+}
+
+func (giver openMeteoGiver) get(url string) ([]byte, error) {
+	resp, err := giver.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func GetOpenMeteoData(lat float64, lng float64) (WeatherData, error) {
 	var weather WeatherData
-	res, err := http.Get(createURL(loc))
+
+	client := &http.Client{}
+	giver := openMeteoGiver{client: client}
+
+	url := createURL(lat, lng)
+	body, err := giver.get(url)
 	if err != nil {
 		return weather, err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return weather, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return weather, err
-	}
-
 	err = json.Unmarshal(body, &weather)
 	return weather, err
 }
