@@ -65,13 +65,13 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 			fmt.Println("Error loading timezone:", err)
 			os.Exit(1)
 		}
-		datetimeParsed, err := time.ParseInLocation("2006-01-02T15:04", datetime, location)
+		datetimeInLocation := datetime.In(location)
 		if err != nil {
 			fmt.Println("Error parsing datetime:", err)
 			os.Exit(1)
 		}
 
-		if datetimeParsed.Before(currentTime) {
+		if datetimeInLocation.Before(currentTime) {
 			i += 1
 			continue
 		}
@@ -79,7 +79,7 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 			break
 		}
 
-		hour := datetimeParsed.Hour()
+		hour := datetimeInLocation.Hour()
 		formattedHour := fmt.Sprintf("%02d:00", hour)
 
 		temperatureColor := color.New(color.FgCyan).Sprintf("%.1f°C", temperature)

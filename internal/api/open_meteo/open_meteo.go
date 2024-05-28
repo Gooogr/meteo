@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/zsefvlol/timezonemapper"
 )
@@ -26,19 +27,30 @@ type HourlyUnitsData struct {
 	WindSpeed10m             string `json:"windspeed_10m"`
 }
 
+type TimeSlice []time.Time
+
 type HourlyData struct {
-	Time                     []string  `json:"time"` // TODO: convert directly to time.Time
+	Time                     TimeSlice `json:"time"`
 	Temperature2m            []float64 `json:"temperature_2m"`
 	PrecipitationProbability []float64 `json:"precipitation_probability"`
 	WeatherCode              []int     `json:"weathercode"`
 	WindSpeed10m             []float64 `json:"windspeed_10m"`
 }
 
-func createURL(lat float64, lng float64) string {
-	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
-	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
-	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
-	return url
+func (ts *TimeSlice) UnmarshalJSON(data []byte) error {
+	var timeStrings []string
+	if err := json.Unmarshal(data, &timeStrings); err != nil {
+		return err
+	}
+	*ts = make([]time.Time, len(timeStrings))
+	for idx, t := range timeStrings {
+		parsedTime, err := time.Parse("2006-01-02T15:04", t)
+		if err != nil {
+			return err
+		}
+		(*ts)[idx] = parsedTime
+	}
+	return nil
 }
 
 type httpClient interface {
@@ -65,6 +77,13 @@ func (giver openMeteoGiver) get(url string) ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+func createURL(lat float64, lng float64) string {
+	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
+	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
+	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
+	return url
 }
 
 func GetOpenMeteoData(lat float64, lng float64) (WeatherData, error) {
