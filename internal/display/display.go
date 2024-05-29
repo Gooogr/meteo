@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/fatih/color"
+	openmeteo "meteo/internal/api/open_meteo"
 
-	meteo "meteo/internal/api/open_meteo"
+	"github.com/olekukonko/tablewriter"
 )
 
 const maxRows = 12
@@ -43,19 +43,21 @@ var weatherCodes = map[int]string{
 	99: "Thunderstorm with heavy hail",
 }
 
-func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
+func prepareWeatherData(weather openmeteo.WeatherData, timezone string) [][]string {
 	currentTime := time.Now()
+
+	var data [][]string
 
 	i := 0
 	rowsCnt := 0
 	for i < len(weather.Hourly.Time) {
 		datetime := weather.Hourly.Time[i]
 		temperature := weather.Hourly.Temperature2m[i]
-		weathercode := weather.Hourly.Weathercode[i]
-		precipitation := weather.Hourly.PrecipitationProbability[i]
-		windspeed := weather.Hourly.Windspeed10m[i]
+		weatherCode := weather.Hourly.WeatherCode[i]
+		precipitationProbability := weather.Hourly.PrecipitationProbability[i]
+		windSpeed := weather.Hourly.WindSpeed10m[i]
 
-		weatherState, ok := weatherCodes[weathercode]
+		weatherState, ok := weatherCodes[weatherCode]
 		if !ok {
 			weatherState = ""
 		}
@@ -65,13 +67,13 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 			fmt.Println("Error loading timezone:", err)
 			os.Exit(1)
 		}
-		datetimeParsed, err := time.ParseInLocation("2006-01-02T15:04", datetime, location)
+		datetimeInLocation := datetime.In(location)
 		if err != nil {
 			fmt.Println("Error parsing datetime:", err)
 			os.Exit(1)
 		}
 
-		if datetimeParsed.Before(currentTime) {
+		if datetimeInLocation.Before(currentTime) {
 			i += 1
 			continue
 		}
@@ -79,30 +81,47 @@ func PrintWeatherForecast(weather meteo.WeatherData, timezone string) {
 			break
 		}
 
-		hour := datetimeParsed.Hour()
+		hour := datetimeInLocation.Hour()
 		formattedHour := fmt.Sprintf("%02d:00", hour)
+		formattedTemperature := fmt.Sprintf("%.1f°C", temperature)
+		formattedPrecipitationProbability := fmt.Sprintf("%.0f%%", precipitationProbability)
+		formattedWindSpeed := fmt.Sprintf("%.1fkm/h", windSpeed)
 
-		temperatureColor := color.New(color.FgCyan).Sprintf("%.1f°C", temperature)
-		precipitationColor := color.New(color.FgGreen).Sprintf("%.0f%%", precipitation)
-		windspeedColor := color.New(color.FgBlue).Sprintf("%.1fkm/h", windspeed)
-
-		timeColumnSize := 6
-		temperatureColumnSize := 10
-		windspeedColumnSize := 10
-		precipitationColumnSize := 13
-		weatherColumnSize := 10
-
-		formatString := fmt.Sprintf(
-			"%%-%ds %%-%ds %%-%ds %%-%ds  %%-%ds\n",
-			timeColumnSize,
-			temperatureColumnSize,
-			windspeedColumnSize,
-			precipitationColumnSize,
-			weatherColumnSize,
-		)
-
-		fmt.Printf(formatString, formattedHour, temperatureColor, windspeedColor, precipitationColor, weatherState)
+		data = append(data, []string{
+			formattedHour,
+			formattedTemperature,
+			formattedPrecipitationProbability,
+			formattedWindSpeed,
+			weatherState,
+		})
 		i += 1
 		rowsCnt += 1
 	}
+	return data
+}
+
+func DisplayTable(weather openmeteo.WeatherData, timezone string) {
+	data := prepareWeatherData(weather, timezone)
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{
+		"Time\n----",
+		"Temp\n----",
+		"Rain\n----",
+		"Wind\n----",
+		"Condition\n---------",
+	})
+	table.SetAutoWrapText(false)
+	table.SetAutoFormatHeaders(false)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("  ") // pad with tabs
+	table.SetNoWhiteSpace(true)
+	table.AppendBulk(data) // Add Bulk Data
+	table.Render()
 }

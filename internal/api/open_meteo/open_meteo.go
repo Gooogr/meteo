@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/zsefvlol/timezonemapper"
 )
@@ -22,54 +23,80 @@ type HourlyUnitsData struct {
 	Time                     string `json:"time"`
 	Temperature2m            string `json:"temperature_2m"`
 	PrecipitationProbability string `json:"precipitation_probability"`
-	Weathercode              string `json:"weathercode"`
-	Windspeed10m             string `json:"windspeed_10m"`
+	WeatherCode              string `json:"weathercode"`
+	WindSpeed10m             string `json:"windspeed_10m"`
 }
+
+type TimeSlice []time.Time
 
 type HourlyData struct {
-	Time                     []string  `json:"time"` // TODO: convert directly to time.Time
+	Time                     TimeSlice `json:"time"`
 	Temperature2m            []float64 `json:"temperature_2m"`
 	PrecipitationProbability []float64 `json:"precipitation_probability"`
-	Weathercode              []int     `json:"weathercode"`
-	Windspeed10m             []float64 `json:"windspeed_10m"`
+	WeatherCode              []int     `json:"weathercode"`
+	WindSpeed10m             []float64 `json:"windspeed_10m"`
 }
 
-type Location struct {
-	Lat, Lng float64
+func (ts *TimeSlice) UnmarshalJSON(data []byte) error {
+	var timeStrings []string
+	if err := json.Unmarshal(data, &timeStrings); err != nil {
+		return err
+	}
+	*ts = make([]time.Time, len(timeStrings))
+	for idx, t := range timeStrings {
+		parsedTime, err := time.Parse("2006-01-02T15:04", t)
+		if err != nil {
+			return err
+		}
+		(*ts)[idx] = parsedTime
+	}
+	return nil
 }
 
-func (l Location) GetTimeZone() string {
-	return timezonemapper.LatLngToTimezoneString(l.Lat, l.Lng)
+type httpClient interface {
+	Get(string) (*http.Response, error)
 }
 
-func createURL(loc Location) string {
-	// Add coordinates
-	url := fmt.Sprintf("%s?latitude=%f&longitude=%f", apiURL, loc.Lat, loc.Lng)
-	// Add timezone
-	timezone := loc.GetTimeZone()
-	url = fmt.Sprintf("%s&timezone=%s", url, timezone)
-	// Add other constant filters
+type openMeteoGiver struct {
+	client httpClient
+}
+
+func (giver openMeteoGiver) get(url string) ([]byte, error) {
+	resp, err := giver.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func createURL(lat float64, lng float64) string {
+	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
+	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
 	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
 	return url
 }
 
-func GetWeatherData(loc Location) (WeatherData, error) {
+func GetOpenMeteoData(lat float64, lng float64) (WeatherData, error) {
 	var weather WeatherData
-	res, err := http.Get(createURL(loc))
+
+	client := &http.Client{}
+	giver := openMeteoGiver{client: client}
+
+	url := createURL(lat, lng)
+	body, err := giver.get(url)
 	if err != nil {
 		return weather, err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return weather, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return weather, err
-	}
-
 	err = json.Unmarshal(body, &weather)
 	return weather, err
 }

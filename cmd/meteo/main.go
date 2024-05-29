@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	meteo "meteo/internal/api/open_meteo"
+	openmeteo "meteo/internal/api/open_meteo"
 	"meteo/internal/config"
 	"meteo/internal/display"
 	"os"
-	// "github.com/Gooogr/meteo/internal/config"
-	// "github.com/Gooogr/meteo/internal/display"
+
+	"github.com/zsefvlol/timezonemapper"
 )
 
 // TODO:
@@ -16,12 +16,10 @@ import (
 // Take this coords from config next times. Also user can pass lat and long or city directly
 
 func main() {
-	// Get coordinates from yaml
 	cfg := config.ReadConfig()
 	lat := cfg.Latitude
 	lng := cfg.Longitude
 
-	// Check for valid latitude and longitude
 	if lat < -90 || lat > 90 {
 		fmt.Println("Invalid latitude. Latitude must be between -90 and 90 degrees.")
 		return
@@ -31,15 +29,13 @@ func main() {
 		return
 	}
 
-	// Request forecast
-	loc := meteo.Location{Lat: lat, Lng: lng}
-	weatherData, err := meteo.GetWeatherData(loc)
+	weatherData, err := openmeteo.GetOpenMeteoData(lat, lng)
 	if err != nil {
 		fmt.Printf("Error fetching weather data: %v\n", err)
 		os.Exit(1)
 	}
 
-	timezone := loc.GetTimeZone()
-	display.PrintWeatherForecast(weatherData, timezone)
+	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
+	display.DisplayTable(weatherData, timezone)
 
 }
