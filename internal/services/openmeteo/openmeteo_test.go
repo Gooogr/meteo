@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"meteo/internal/domain"
+	"meteo/internal/services/openmeteo/mocks"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
-
-	"meteo/internal/services/openmeteo/mocks"
 )
 
 func Test_createURL(t *testing.T) {
@@ -47,62 +47,7 @@ func Test_createURL(t *testing.T) {
 	}
 }
 
-func TestTimeSlice_UnmarshalJSON(t *testing.T) {
-	type args struct {
-		data []byte
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    TimeSlice
-		wantErr bool
-	}{
-		{
-			name:    "Valid time format",
-			args:    args{data: []byte(`["2023-01-01T12:00", "2023-01-01T13:00"]`)},
-			want:    TimeSlice{time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC), time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC)},
-			wantErr: false,
-		},
-		{
-			name:    "Invalid time format",
-			args:    args{data: []byte(`["2023-01-01 12:00", "2023-01-01T13:00"]`)},
-			want:    nil,
-			wantErr: true,
-		},
-		{
-			name:    "Empty time slice",
-			args:    args{data: []byte(`[]`)},
-			want:    TimeSlice{},
-			wantErr: false,
-		},
-		{
-			name:    "Single valid time",
-			args:    args{data: []byte(`["2023-01-01T12:00"]`)},
-			want:    TimeSlice{time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)},
-			wantErr: false,
-		},
-		{
-			name:    "Invalid JSON",
-			args:    args{data: []byte(`[2023-01-01T12:00]`)},
-			want:    nil,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var ts TimeSlice
-			err := ts.UnmarshalJSON(tt.args.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TimeSlice.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr && !reflect.DeepEqual(ts, tt.want) {
-				t.Errorf("UnmarshalJSON() got = %v, want %v", ts, tt.want)
-			}
-		})
-	}
-}
-
-func Test_openMeteoGiver_get(t *testing.T) {
+func Test_openmeteo_get(t *testing.T) {
 	tests := []struct {
 		name           string
 		url            string
@@ -110,14 +55,26 @@ func Test_openMeteoGiver_get(t *testing.T) {
 		mockStatusCode int
 		mockError      error
 		wantErr        bool
+		wantData       *domain.OpenmeteoWeatherData
 	}{
 		{
 			name:           "successful API call",
 			url:            "https://api.open-meteo.com/v1/forecast?mock=successful",
-			mockResponse:   `{"success":true,"data":"valid weather data"}`,
+			mockResponse:   `{"latitude":52.52,"longitude":13.405,"hourly":{"time":["2023-01-01T00:00"],"temperature_2m":[10],"precipitation_probability":[20],"weathercode":[100],"windspeed_10m":[5]}}`,
 			mockStatusCode: 200,
 			mockError:      nil,
 			wantErr:        false,
+			wantData: &domain.OpenmeteoWeatherData{
+				Latitude:  52.52,
+				Longitude: 13.405,
+				Hourly: domain.HourlyData{
+					Time:                     domain.TimeSlice{time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)},
+					Temperature2m:            []float64{10},
+					PrecipitationProbability: []float64{20},
+					WeatherCode:              []int{100},
+					WindSpeed10m:             []float64{5},
+				},
+			},
 		},
 		{
 			name:           "API returns non-200 status",
@@ -126,6 +83,7 @@ func Test_openMeteoGiver_get(t *testing.T) {
 			mockStatusCode: 400,
 			mockError:      nil,
 			wantErr:        true,
+			wantData:       nil,
 		},
 		{
 			name:           "HTTP client error",
@@ -134,6 +92,7 @@ func Test_openMeteoGiver_get(t *testing.T) {
 			mockStatusCode: 0,
 			mockError:      errors.New("network error"),
 			wantErr:        true,
+			wantData:       nil,
 		},
 	}
 
@@ -150,16 +109,12 @@ func Test_openMeteoGiver_get(t *testing.T) {
 			}
 
 			giver := openmeteo{client: client}
-			responseBytes, err := giver.get(tt.url)
+			data, err := giver.get(tt.url)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("giver.get() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if !tt.wantErr {
-				expectedResponse := tt.mockResponse
-				if string(responseBytes) != expectedResponse {
-					t.Errorf("giver.get() expected %s, got %s", expectedResponse, string(responseBytes))
-				}
+			if !tt.wantErr && !reflect.DeepEqual(data, tt.wantData) {
+				t.Errorf("get() got = %+v, want %+v", data, tt.wantData)
 			}
 		})
 	}
