@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"meteo/internal/api/weatherapi/openmeteo/mocks"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
+
+	"meteo/internal/services/openmeteo/mocks"
 )
 
 func Test_createURL(t *testing.T) {
@@ -148,7 +149,7 @@ func Test_openMeteoGiver_get(t *testing.T) {
 				},
 			}
 
-			giver := openMeteoGiver{client: client}
+			giver := openmeteo{client: client}
 			responseBytes, err := giver.get(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("giver.get() error = %v, wantErr %v", err, tt.wantErr)

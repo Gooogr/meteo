@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	openmeteo "meteo/internal/api/weatherapi/openmeteo"
+	"os"
+
 	"meteo/internal/config"
 	"meteo/internal/display"
-	"os"
+	"meteo/internal/services/openmeteo"
 
 	"github.com/zsefvlol/timezonemapper"
 )
@@ -29,13 +30,17 @@ func main() {
 		return
 	}
 
-	weatherData, err := openmeteo.GetOpenMeteoData(lat, lng)
+	// Init services.
+	openmeteo := openmeteo.NewOpenmeteo()
+
+	//
+	weatherData, err := openmeteo.Get(lat, lng)
 	if err != nil {
 		fmt.Printf("Error fetching weather data: %v\n", err)
 		os.Exit(1)
 	}
 
+	//
 	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
 	display.DisplayTable(weatherData, timezone)
-
 }

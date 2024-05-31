@@ -5,62 +5,26 @@ import (
 	"os"
 	"time"
 
-	openmeteo "meteo/internal/api/weatherapi/openmeteo"
+	"meteo/internal/domain"
 
 	"github.com/olekukonko/tablewriter"
 )
 
 const maxRows = 12
 
-var weatherCodes = map[int]string{
-	0:  "Clear sky",
-	1:  "Mainly clear",
-	2:  "Partly cloudy",
-	3:  "Overcast",
-	45: "Fog",
-	48: "Rime fog",
-	51: "Light drizzle",
-	53: "Moderate drizzle",
-	55: "Dense drizzle",
-	56: "Light freezing drizzle",
-	57: "Dense freezing drizzle",
-	61: "Slight rain",
-	63: "Moderate rain",
-	65: "Heavy rain",
-	66: "Light freezing rain",
-	67: "Heavy freezing rain",
-	71: "Slight snow",
-	73: "Moderate snow",
-	75: "Heavy snow",
-	77: "Snow grains",
-	80: "Slight rain",
-	81: "Moderate rain",
-	82: "Heavy rain",
-	85: "Slight snow",
-	86: "Heavy snow",
-	95: "Thunderstorm",
-	96: "Thunderstorm with slight hail",
-	99: "Thunderstorm with heavy hail",
-}
-
-func prepareWeatherData(weather openmeteo.WeatherData, timezone string) [][]string {
+func prepareWeatherData(weather *domain.WeatherData, timezone string) [][]string {
 	currentTime := time.Now()
 
 	var data [][]string
 
 	i := 0
 	rowsCnt := 0
-	for i < len(weather.Hourly.Time) {
-		datetime := weather.Hourly.Time[i]
-		temperature := weather.Hourly.Temperature2m[i]
-		weatherCode := weather.Hourly.WeatherCode[i]
-		precipitationProbability := weather.Hourly.PrecipitationProbability[i]
-		windSpeed := weather.Hourly.WindSpeed10m[i]
-
-		weatherState, ok := weatherCodes[weatherCode]
-		if !ok {
-			weatherState = ""
-		}
+	for i < len(weather.Time) {
+		datetime := weather.Time[i]
+		temperature := weather.Temperature2m[i]
+		weatherState := weather.WeatherState[i]
+		precipitationProbability := weather.PrecipitationProbability[i]
+		windSpeed := weather.WindSpeed10m[i]
 
 		location, err := time.LoadLocation(timezone)
 		if err != nil {
@@ -100,7 +64,7 @@ func prepareWeatherData(weather openmeteo.WeatherData, timezone string) [][]stri
 	return data
 }
 
-func DisplayTable(weather openmeteo.WeatherData, timezone string) {
+func DisplayTable(weather *domain.WeatherData, timezone string) {
 	data := prepareWeatherData(weather, timezone)
 
 	table := tablewriter.NewWriter(os.Stdout)
