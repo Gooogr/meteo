@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	openmeteo "meteo/internal/api/open_meteo"
+	openmeteo "meteo/internal/api/weatherapi/openmeteo"
 	"meteo/internal/config"
 	"meteo/internal/display"
 	"os"

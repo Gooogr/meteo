@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	openmeteo "meteo/internal/api/open_meteo"
+	openmeteo "meteo/internal/api/weatherapi/openmeteo"
 
 	"github.com/olekukonko/tablewriter"
 )

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"meteo/internal/api/open_meteo/mocks"
+	"meteo/internal/api/weatherapi/openmeteo/mocks"
 	"net/http"
 	"reflect"
 	"testing"

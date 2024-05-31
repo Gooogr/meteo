@@ -13,18 +13,9 @@ import (
 const apiURL = "https://api.open-meteo.com/v1/forecast"
 
 type WeatherData struct {
-	Latitude    float64         `json:"latitude"`
-	Longitude   float64         `json:"longitude"`
-	HourlyUnits HourlyUnitsData `json:"hourly_units"`
-	Hourly      HourlyData      `json:"hourly"`
-}
-
-type HourlyUnitsData struct {
-	Time                     string `json:"time"`
-	Temperature2m            string `json:"temperature_2m"`
-	PrecipitationProbability string `json:"precipitation_probability"`
-	WeatherCode              string `json:"weathercode"`
-	WindSpeed10m             string `json:"windspeed_10m"`
+	Latitude  float64    `json:"latitude"`
+	Longitude float64    `json:"longitude"`
+	Hourly    HourlyData `json:"hourly"`
 }
 
 type TimeSlice []time.Time
@@ -33,7 +24,7 @@ type HourlyData struct {
 	Time                     TimeSlice `json:"time"`
 	Temperature2m            []float64 `json:"temperature_2m"`
 	PrecipitationProbability []float64 `json:"precipitation_probability"`
-	WeatherCode              []int     `json:"weathercode"`
+	WeatherCode              []int     `json:"weathercode"` // Специфичен для этого API
 	WindSpeed10m             []float64 `json:"windspeed_10m"`
 }
 
