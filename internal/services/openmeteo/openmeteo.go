@@ -6,14 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/zsefvlol/timezonemapper"
-
 	"meteo/internal"
 	"meteo/internal/domain"
 	"meteo/internal/dto"
 )
 
-const apiURL = "https://api.open-meteo.com/v1/forecast"
+const baseURL = "https://api.open-meteo.com/v1/forecast"
 
 var weatherCodes = map[int]string{
 	0:  "Clear sky",
@@ -139,8 +137,7 @@ func createURL(lat float64, lng float64) (string, error) {
 		return "", fmt.Errorf("longitude must be between -180 and 180 degrees")
 	}
 
-	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
-	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
+	url := fmt.Sprintf("%s?latitude=%f&longitude=%f", baseURL, lat, lng)
 	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
 
 	return url, nil
