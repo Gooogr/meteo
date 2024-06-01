@@ -17,7 +17,6 @@ const (
 )
 
 func ReadConfig() *Config {
-
 	vp := viper.New()
 	vp.AddConfigPath(ConfigFolder)
 

@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/zsefvlol/timezonemapper"
 
-	"meteo/internal"
 	"meteo/internal/domain"
 	"meteo/internal/dto"
+	"meteo/internal/services"
 )
 
 const apiURL = "https://api.open-meteo.com/v1/forecast"
@@ -50,9 +49,11 @@ type openmeteo struct {
 	client httpClient
 }
 
-func NewOpenmeteo() internal.Contract {
+func NewOpenmeteo(
+	client httpClient,
+) services.Contract {
 	return &openmeteo{
-		client: &http.Client{},
+		client: client,
 	}
 }
 
