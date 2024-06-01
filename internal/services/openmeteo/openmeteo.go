@@ -100,7 +100,10 @@ func (om *openmeteo) Get(
 	lat float64,
 	lng float64,
 ) (*domain.WeatherData, error) {
-	url := createURL(lat, lng)
+	url, err := createURL(lat, lng)
+	if err != nil {
+		return nil, err
+	}
 
 	data, err := om.get(url)
 	if err != nil {
@@ -128,10 +131,17 @@ func (om *openmeteo) Get(
 	}, nil
 }
 
-func createURL(lat float64, lng float64) string {
+func createURL(lat float64, lng float64) (string, error) {
+	if lat < -90 || lat > 90 {
+		return "", fmt.Errorf("latitude must be between -90 and 90 degrees")
+	}
+	if lng < -180 || lng > 180 {
+		return "", fmt.Errorf("longitude must be between -180 and 180 degrees")
+	}
+
 	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
 	url := fmt.Sprintf("%s?latitude=%f&longitude=%f&timezone=%s", apiURL, lat, lng, timezone)
 	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
 
-	return url
+	return url, nil
 }

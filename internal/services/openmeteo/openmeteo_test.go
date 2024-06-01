@@ -18,29 +18,47 @@ func Test_createURL(t *testing.T) {
 		lng float64
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		args    args
+		want    string
+		wantErr bool
 	}{
 		{
-			name: "Null Island",
-			args: args{lat: 0.0, lng: 0.0},
-			want: "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&timezone=Africa/Sao_Tome&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			name:    "Null Island",
+			args:    args{lat: 0.0, lng: 0.0},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&timezone=Africa/Sao_Tome&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			wantErr: false,
 		},
 		{
-			name: "Negative coordinates",
-			args: args{lat: -45.0, lng: -90.0},
-			want: "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&timezone=America/Santiago&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			name:    "Negative coordinates",
+			args:    args{lat: -45.0, lng: -90.0},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&timezone=America/Santiago&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			wantErr: false,
 		},
 		{
-			name: "Floating point precision",
-			args: args{lat: 37.7749, lng: -122.4194},
-			want: "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&timezone=America/Los_Angeles&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			name:    "Floating point precision",
+			args:    args{lat: 37.7749, lng: -122.4194},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&timezone=America/Los_Angeles&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			wantErr: false,
+		},
+		{
+			name:    "Incorrect latitude",
+			args:    args{lat: -95.0, lng: 0.0},
+			wantErr: true,
+		},
+		{
+			name:    "Incorrect longitude",
+			args:    args{lat: 0.0, lng: -185},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := createURL(tt.args.lat, tt.args.lng); got != tt.want {
+			got, err := createURL(tt.args.lat, tt.args.lng)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
 				t.Errorf("createURL() = %v, want %v", got, tt.want)
 			}
 		})

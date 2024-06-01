@@ -21,26 +21,17 @@ func main() {
 	lat := cfg.Latitude
 	lng := cfg.Longitude
 
-	if lat < -90 || lat > 90 {
-		fmt.Println("Invalid latitude. Latitude must be between -90 and 90 degrees.")
-		return
-	}
-	if lng < -180 || lng > 180 {
-		fmt.Println("Invalid longitude. Longitude must be between -180 and 180 degrees.")
-		return
-	}
-
 	// Init services.
-	openmeteo := openmeteo.NewOpenmeteo()
+	weatherService := openmeteo.NewOpenmeteo()
 
-	//
-	weatherData, err := openmeteo.Get(lat, lng)
+	// Get weather data
+	weatherData, err := weatherService.Get(lat, lng)
 	if err != nil {
 		fmt.Printf("Error fetching weather data: %v\n", err)
 		os.Exit(1)
 	}
 
-	//
+	// Render table
 	timezone := timezonemapper.LatLngToTimezoneString(lat, lng)
 	display.DisplayTable(weatherData, timezone)
 }
