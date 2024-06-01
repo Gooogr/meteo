@@ -137,3 +137,23 @@ func Test_openmeteo_get(t *testing.T) {
 		})
 	}
 }
+
+//func Test_Example(t *testing.T) {
+//	type args struct {
+//		lat float64
+//		lng float64
+//	}
+//
+//	// Init vars.
+//	arguments := args{lat: 0.0, lng: 0.0}
+//
+//	// Mocks.
+//	mockHttpClient := mocks.MockClient{}
+//
+//	// Init service.
+//	svc := NewOpenmeteo(mockHttpClient)
+//
+//	// Test.
+//	res, err := svc.Get(arguments.lat, arguments.lng)
+//	// asserts
+//}

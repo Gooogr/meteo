@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
-	"meteo/internal/config"
+	"meteo/config"
 	"meteo/internal/display"
 	"meteo/internal/services/openmeteo"
 
@@ -21,8 +22,11 @@ func main() {
 	lat := cfg.Latitude
 	lng := cfg.Longitude
 
+	// Init http client.
+	httpClient := &http.Client{}
+
 	// Init services.
-	weatherService := openmeteo.NewOpenmeteo()
+	weatherService := openmeteo.NewOpenmeteo(httpClient)
 
 	// Get weather data
 	weatherData, err := weatherService.Get(lat, lng)
