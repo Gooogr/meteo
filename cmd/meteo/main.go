@@ -7,15 +7,10 @@ import (
 
 	"meteo/config"
 	"meteo/internal/display"
-	"meteo/internal/services/meteoblue"
+	"meteo/internal/services/openmeteo"
 
 	"github.com/zsefvlol/timezonemapper"
 )
-
-// TODO:
-// Ask user to type coordinates or city at first run
-// Create json config file based on this input
-// Take this coords from config next times. Also user can pass lat and long or city directly
 
 func main() {
 	cfg := config.ReadConfig()
@@ -25,8 +20,8 @@ func main() {
 
 	// Init services.
 	// Possible weather provider: openmeteo or meteoblue
-	// weatherService := openmeteo.NewOpenmeteo(httpClient)
-	weatherService := meteoblue.NewMeteoblue(httpClient)
+	weatherService := openmeteo.NewOpenmeteo(httpClient)
+	// weatherService := meteoblue.NewMeteoblue(httpClient)
 
 	// Get weather data
 	weatherData, err := weatherService.Get(cfg)

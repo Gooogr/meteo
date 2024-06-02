@@ -61,7 +61,7 @@ func NewMeteoblue(client httpClient) services.Contract {
 	}
 }
 
-func (mb *meteoblue) get(url string) (*domain.MeteoblueWeatherData, error) {
+func (mb *meteoblue) fetchMeteoblueData(url string) (*domain.MeteoblueWeatherData, error) {
 	weatherDto := dto.MeteoblueWeatherData{}
 
 	// Get data from meteoblue.
@@ -109,7 +109,7 @@ func (mb *meteoblue) Get(cfg *config.Config) (*domain.WeatherData, error) {
 		return nil, err
 	}
 
-	data, err := mb.get(url)
+	data, err := mb.fetchMeteoblueData(url)
 	if err != nil {
 		return nil, err
 	}
