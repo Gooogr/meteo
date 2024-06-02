@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func Test_createURL(t *testing.T) {
@@ -85,12 +84,12 @@ func Test_openmeteo_get(t *testing.T) {
 			wantData: &domain.OpenmeteoWeatherData{
 				Latitude:  52.52,
 				Longitude: 13.405,
-				Hourly: domain.HourlyData{
-					Time:                     domain.TimeSlice{time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)},
-					Temperature2m:            []float64{10},
+				Hourly: domain.OpenmeteoHourlyData{
+					Time:                     []int64{20060102150405},
+					Temperature:              []float64{10},
 					PrecipitationProbability: []float64{20},
-					WeatherCode:              []int{100},
-					WindSpeed10m:             []float64{5},
+					WeatherCode:              []int64{100},
+					WindSpeed:                []float64{5},
 				},
 			},
 		},

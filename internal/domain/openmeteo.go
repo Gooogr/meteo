@@ -1,19 +1,15 @@
 package domain
 
-import "time"
-
 type OpenmeteoWeatherData struct {
 	Latitude  float64
 	Longitude float64
-	Hourly    HourlyData
+	Hourly    OpenmeteoHourlyData
 }
 
-type TimeSlice []time.Time
-
-type HourlyData struct {
-	Time                     TimeSlice
-	Temperature2m            []float64
+type OpenmeteoHourlyData struct {
+	Time                     []int64
+	Temperature              []float64
 	PrecipitationProbability []float64
-	WeatherCode              []int
-	WindSpeed10m             []float64
+	WeatherCode              []int64
+	WindSpeed                []float64
 }

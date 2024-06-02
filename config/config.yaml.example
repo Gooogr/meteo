@@ -1,0 +1,7 @@
+latitude: 0.0
+longitude: 0.0
+
+#Meteoblue API. 
+#How to get access: https://www.meteoblue.com/de/weather-api/apikey 
+meteoblue-api-key: my-secret-key
+meteoblue-shared-secret: my-shared-secret

@@ -20,11 +20,11 @@ func prepareWeatherData(weather *domain.WeatherData, timezone string) [][]string
 	i := 0
 	rowsCnt := 0
 	for i < len(weather.Time) {
-		datetime := weather.Time[i]
-		temperature := weather.Temperature2m[i]
+		datetime := time.Unix(weather.Time[i], 0)
+		temperature := weather.Temperature[i]
 		weatherState := weather.WeatherState[i]
 		precipitationProbability := weather.PrecipitationProbability[i]
-		windSpeed := weather.WindSpeed10m[i]
+		windSpeed := weather.WindSpeed[i]
 
 		location, err := time.LoadLocation(timezone)
 		if err != nil {
@@ -84,7 +84,7 @@ func DisplayTable(weather *domain.WeatherData, timezone string) {
 	table.SetRowSeparator("")
 	table.SetHeaderLine(false)
 	table.SetBorder(false)
-	table.SetTablePadding("  ") // pad with tabs
+	table.SetTablePadding("  ")
 	table.SetNoWhiteSpace(true)
 	table.AppendBulk(data) // Add Bulk Data
 	table.Render()

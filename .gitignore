@@ -5,7 +5,6 @@
 .vscode
 .idea
 
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -24,3 +23,6 @@
 
 # Go workspace file
 go.work
+
+# Secrets
+config/config.yaml

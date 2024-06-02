@@ -1,9 +1,9 @@
 package domain
 
 type WeatherData struct {
-	Time                     TimeSlice
-	Temperature2m            []float64
+	Time                     []int64
+	Temperature              []float64
 	PrecipitationProbability []float64
 	WeatherState             []string
-	WindSpeed10m             []float64
+	WindSpeed                []float64
 }

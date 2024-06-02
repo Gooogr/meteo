@@ -8,17 +8,17 @@ import (
 )
 
 type Config struct {
-	Latitude  float64 `yaml:"Latitude" validate:"required"`
-	Longitude float64 `yaml:"Longitude" validate:"required"`
+	Latitude                 float64 `mapstructure:"latitude" validate:"required"`
+	Longitude                float64 `mapstructure:"longitude" validate:"required"`
+	MeteoblueAPIKey          string  `mapstructure:"meteoblue-api-key" validate:"required"`
+	MeteoblueAPISharedSecret string  `mapstructure:"meteoblue-shared-secret" validate:"required"`
 }
-
-const (
-	ConfigFolder = "config"
-)
 
 func ReadConfig() *Config {
 	vp := viper.New()
-	vp.AddConfigPath(ConfigFolder)
+	vp.AddConfigPath("config")
+	vp.AddConfigPath("../config")
+	vp.AddConfigPath("../../config")
 
 	var cfg Config
 

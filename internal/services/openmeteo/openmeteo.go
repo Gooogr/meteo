@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"io"
 
+	"meteo/config"
 	"meteo/internal/domain"
 	"meteo/internal/dto"
 	"meteo/internal/services"
 )
 
-const baseURL = "https://api.open-meteo.com/v1/forecast"
+const baseURL = "https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f"
 
-var weatherCodes = map[int]string{
+var openmeteoWeatherCodes = map[int64]string{
 	0:  "Clear sky",
 	1:  "Mainly clear",
 	2:  "Partly cloudy",
@@ -47,16 +48,14 @@ type openmeteo struct {
 	client httpClient
 }
 
-func NewOpenmeteo(
-	client httpClient,
-) services.Contract {
+func NewOpenmeteo(client httpClient) services.Contract {
 	return &openmeteo{
 		client: client,
 	}
 }
 
 func (om *openmeteo) get(url string) (*domain.OpenmeteoWeatherData, error) {
-	weatherDto := dto.WeatherData{}
+	weatherDto := dto.OpenmeteoWeatherData{}
 
 	// Get data from openmeteo.
 	resp, err := om.client.Get(url)
@@ -83,23 +82,20 @@ func (om *openmeteo) get(url string) (*domain.OpenmeteoWeatherData, error) {
 	data := &domain.OpenmeteoWeatherData{
 		Latitude:  weatherDto.Latitude,
 		Longitude: weatherDto.Longitude,
-		Hourly: domain.HourlyData{
-			Time:                     (domain.TimeSlice)(weatherDto.Hourly.Time),
-			Temperature2m:            weatherDto.Hourly.Temperature2m,
+		Hourly: domain.OpenmeteoHourlyData{
+			Time:                     weatherDto.Hourly.Time,
+			Temperature:              weatherDto.Hourly.Temperature,
 			PrecipitationProbability: weatherDto.Hourly.PrecipitationProbability,
 			WeatherCode:              weatherDto.Hourly.WeatherCode,
-			WindSpeed10m:             weatherDto.Hourly.WindSpeed10m,
+			WindSpeed:                weatherDto.Hourly.WindSpeed,
 		},
 	}
 
 	return data, nil
 }
 
-func (om *openmeteo) Get(
-	lat float64,
-	lng float64,
-) (*domain.WeatherData, error) {
-	url, err := createURL(lat, lng)
+func (om *openmeteo) Get(cfg *config.Config) (*domain.WeatherData, error) {
+	url, err := createURL(cfg.Latitude, cfg.Longitude)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +109,7 @@ func (om *openmeteo) Get(
 	for i, code := range data.Hourly.WeatherCode {
 		state := ""
 
-		wc, ok := weatherCodes[code]
+		wc, ok := openmeteoWeatherCodes[code]
 		if ok {
 			state = wc
 		}
@@ -123,10 +119,10 @@ func (om *openmeteo) Get(
 
 	return &domain.WeatherData{
 		Time:                     data.Hourly.Time,
-		Temperature2m:            data.Hourly.Temperature2m,
+		Temperature:              data.Hourly.Temperature,
 		PrecipitationProbability: data.Hourly.PrecipitationProbability,
 		WeatherState:             weatherState,
-		WindSpeed10m:             data.Hourly.WindSpeed10m,
+		WindSpeed:                data.Hourly.WindSpeed,
 	}, nil
 }
 
@@ -138,8 +134,8 @@ func createURL(lat float64, lng float64) (string, error) {
 		return "", fmt.Errorf("longitude must be between -180 and 180 degrees")
 	}
 
-	url := fmt.Sprintf("%s?latitude=%f&longitude=%f", baseURL, lat, lng)
-	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3"
+	url := fmt.Sprintf(baseURL, lat, lng)
+	url = url + "&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime"
 
 	return url, nil
 }
