@@ -12,59 +12,6 @@ import (
 	"testing"
 )
 
-func Test_createURL(t *testing.T) {
-	type args struct {
-		lat float64
-		lng float64
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		{
-			name:    "Null Island",
-			args:    args{lat: 0.0, lng: 0.0},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
-			wantErr: false,
-		},
-		{
-			name:    "Negative coordinates",
-			args:    args{lat: -45.0, lng: -90.0},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
-			wantErr: false,
-		},
-		{
-			name:    "Floating point precision",
-			args:    args{lat: 37.7749, lng: -122.4194},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
-			wantErr: false,
-		},
-		{
-			name:    "Incorrect latitude",
-			args:    args{lat: -95.0, lng: 0.0},
-			wantErr: true,
-		},
-		{
-			name:    "Incorrect longitude",
-			args:    args{lat: 0.0, lng: -185},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := createURL(tt.args.lat, tt.args.lng)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if got != tt.want {
-				t.Errorf("createURL() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_openmeteo_fetchOpenmeteoData(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -244,6 +191,59 @@ func Test_openmeteo_Get(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("openmeteo.Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_createURL(t *testing.T) {
+	type args struct {
+		lat float64
+		lng float64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Null Island",
+			args:    args{lat: 0.0, lng: 0.0},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
+			wantErr: false,
+		},
+		{
+			name:    "Negative coordinates",
+			args:    args{lat: -45.0, lng: -90.0},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
+			wantErr: false,
+		},
+		{
+			name:    "Floating point precision",
+			args:    args{lat: 37.7749, lng: -122.4194},
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
+			wantErr: false,
+		},
+		{
+			name:    "Incorrect latitude",
+			args:    args{lat: -95.0, lng: 0.0},
+			wantErr: true,
+		},
+		{
+			name:    "Incorrect longitude",
+			args:    args{lat: 0.0, lng: -185},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := createURL(tt.args.lat, tt.args.lng)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("createURL() = %v, want %v", got, tt.want)
 			}
 		})
 	}

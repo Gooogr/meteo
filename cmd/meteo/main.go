@@ -7,7 +7,7 @@ import (
 
 	"meteo/config"
 	"meteo/internal/display"
-	"meteo/internal/services/openmeteo"
+	"meteo/internal/services/meteoblue"
 
 	"github.com/zsefvlol/timezonemapper"
 )
@@ -20,8 +20,8 @@ func main() {
 
 	// Init services.
 	// Possible weather provider: openmeteo or meteoblue
-	weatherService := openmeteo.NewOpenmeteo(httpClient)
-	// weatherService := meteoblue.NewMeteoblue(httpClient)
+	// weatherService := openmeteo.NewOpenmeteo(httpClient)
+	weatherService := meteoblue.NewMeteoblue(httpClient)
 
 	// Get weather data
 	weatherData, err := weatherService.Get(cfg)

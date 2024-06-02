@@ -89,7 +89,7 @@ func (mb *meteoblue) fetchMeteoblueData(url string) (*domain.MeteoblueWeatherDat
 	data := &domain.MeteoblueWeatherData{
 		MeteoblueMetadata: domain.MeteoblueMetadata{
 			Latitude:  weatherDto.MeteoblueMetadata.Latitude,
-			Longitude: weatherDto.MeteoblueMetadata.Latitude,
+			Longitude: weatherDto.MeteoblueMetadata.Longitude,
 		},
 		MeteoblueData1h: domain.MeteoblueData1h{
 			Time:                     weatherDto.MeteoblueData1h.Time,
@@ -134,27 +134,24 @@ func (mb *meteoblue) Get(cfg *config.Config) (*domain.WeatherData, error) {
 	}, nil
 }
 
-func createURL(
-	lat float64,
-	lng float64,
-	apiKey string,
-	sharedSecret string,
-) (string, error) {
-	if lat < -90 || lat > 90 {
-		return "", fmt.Errorf("latitude must be between -90 and 90 degrees")
-	}
-	if lng < -180 || lng > 180 {
-		return "", fmt.Errorf("longitude must be between -180 and 180 degrees")
+func createURL(lat, lng float64, apiKey, sharedSecret string) (string, error) {
+	if err := services.ValidateCoordinates(lat, lng); err != nil {
+		return "", err
 	}
 
-	query := "/packages/basic-1h?lat=%f&lon=%f&apikey=%s&expire=1924948800&forecast_days=3&temperature=C&timeformat=timestamp_utc"
-	query = fmt.Sprintf(query, lat, lng, apiKey)
+	query := fmt.Sprintf(
+		"/packages/basic-1h?lat=%.6f&lon=%.6f&apikey=%s&expire=1924948800&forecast_days=3&temperature=C&timeformat=timestamp_utc",
+		lat, lng, apiKey,
+	)
 
-	h := hmac.New(sha256.New, []byte(sharedSecret))
-	h.Write([]byte(query))
-	sig := hex.EncodeToString(h.Sum(nil))
-
+	sig := generateSignature(query, sharedSecret)
 	url := fmt.Sprintf("https://my.meteoblue.com%s&sig=%s", query, sig)
 
 	return url, nil
+}
+
+func generateSignature(data, secret string) string {
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil))
 }
