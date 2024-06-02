@@ -54,7 +54,7 @@ func NewOpenmeteo(client httpClient) services.Contract {
 	}
 }
 
-func (om *openmeteo) get(url string) (*domain.OpenmeteoWeatherData, error) {
+func (om *openmeteo) fetchOpenmeteoData(url string) (*domain.OpenmeteoWeatherData, error) {
 	weatherDto := dto.OpenmeteoWeatherData{}
 
 	// Get data from openmeteo.
@@ -100,7 +100,7 @@ func (om *openmeteo) Get(cfg *config.Config) (*domain.WeatherData, error) {
 		return nil, err
 	}
 
-	data, err := om.get(url)
+	data, err := om.fetchOpenmeteoData(url)
 	if err != nil {
 		return nil, err
 	}

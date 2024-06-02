@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"meteo/config"
 	"meteo/internal/domain"
 	"meteo/internal/services/openmeteo/mocks"
 	"net/http"
@@ -25,19 +26,19 @@ func Test_createURL(t *testing.T) {
 		{
 			name:    "Null Island",
 			args:    args{lat: 0.0, lng: 0.0},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&timezone=Africa/Sao_Tome&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=0.000000&longitude=0.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
 			wantErr: false,
 		},
 		{
 			name:    "Negative coordinates",
 			args:    args{lat: -45.0, lng: -90.0},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&timezone=America/Santiago&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=-45.000000&longitude=-90.000000&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
 			wantErr: false,
 		},
 		{
 			name:    "Floating point precision",
 			args:    args{lat: 37.7749, lng: -122.4194},
-			want:    "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&timezone=America/Los_Angeles&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3",
+			want:    "https://api.open-meteo.com/v1/forecast?latitude=37.774900&longitude=-122.419400&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m&forecast_days=3&timeformat=unixtime",
 			wantErr: false,
 		},
 		{
@@ -64,7 +65,7 @@ func Test_createURL(t *testing.T) {
 	}
 }
 
-func Test_openmeteo_get(t *testing.T) {
+func Test_openmeteo_fetchOpenmeteoData(t *testing.T) {
 	tests := []struct {
 		name           string
 		url            string
@@ -77,7 +78,7 @@ func Test_openmeteo_get(t *testing.T) {
 		{
 			name:           "successful API call",
 			url:            "https://api.open-meteo.com/v1/forecast?mock=successful",
-			mockResponse:   `{"latitude":52.52,"longitude":13.405,"hourly":{"time":["2023-01-01T00:00"],"temperature_2m":[10],"precipitation_probability":[20],"weathercode":[100],"windspeed_10m":[5]}}`,
+			mockResponse:   `{"latitude":52.52,"longitude":13.405,"hourly":{"time":[20060102150405],"temperature_2m":[10],"precipitation_probability":[20],"weathercode":[100],"windspeed_10m":[5]}}`,
 			mockStatusCode: 200,
 			mockError:      nil,
 			wantErr:        false,
@@ -111,6 +112,24 @@ func Test_openmeteo_get(t *testing.T) {
 			wantErr:        true,
 			wantData:       nil,
 		},
+		{
+			name:           "Error reading response body",
+			url:            "https://api.open-meteo.com/v1/forecast?mock=readError",
+			mockResponse:   "",
+			mockStatusCode: 200,
+			mockError:      nil,
+			wantErr:        true,
+			wantData:       nil,
+		},
+		{
+			name:           "Error unmarshaling body",
+			url:            "https://api.open-meteo.com/v1/forecast?mock=unmarshalError",
+			mockResponse:   `{"broken json": {`,
+			mockStatusCode: 200,
+			mockError:      nil,
+			wantErr:        true,
+			wantData:       nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -126,7 +145,7 @@ func Test_openmeteo_get(t *testing.T) {
 			}
 
 			giver := openmeteo{client: client}
-			data, err := giver.get(tt.url)
+			data, err := giver.fetchOpenmeteoData(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -137,22 +156,95 @@ func Test_openmeteo_get(t *testing.T) {
 	}
 }
 
-//func Test_Example(t *testing.T) {
-//	type args struct {
-//		lat float64
-//		lng float64
-//	}
-//
-//	// Init vars.
-//	arguments := args{lat: 0.0, lng: 0.0}
-//
-//	// Mocks.
-//	mockHttpClient := mocks.MockClient{}
-//
-//	// Init service.
-//	svc := NewOpenmeteo(mockHttpClient)
-//
-//	// Test.
-//	res, err := svc.Get(arguments.lat, arguments.lng)
-//	// asserts
-//}
+func Test_openmeteo_Get(t *testing.T) {
+	type args struct {
+		cfg *config.Config
+	}
+	tests := []struct {
+		name         string
+		args         args
+		mockResponse string
+		mockStatus   int
+		want         *domain.WeatherData
+		wantErr      bool
+	}{
+		{
+			name: "successful API call",
+			args: args{
+				cfg: &config.Config{
+					Latitude:  0.0,
+					Longitude: 0.0,
+				},
+			},
+			mockResponse: `{
+				"latitude": 0.0,
+				"longitude": 0.0,
+				"hourly": {
+					"time": [1609459200, 1609462800],
+					"temperature_2m": [1.1, 2.2],
+					"precipitation_probability": [0.0, 0.1],
+					"weathercode": [0, 1],
+					"windspeed_10m": [3.3, 4.4]
+				}
+			}`,
+			mockStatus: http.StatusOK,
+			want: &domain.WeatherData{
+				Time:                     []int64{1609459200, 1609462800},
+				Temperature:              []float64{1.1, 2.2},
+				PrecipitationProbability: []float64{0.0, 0.1},
+				WeatherState:             []string{"Clear sky", "Mainly clear"},
+				WindSpeed:                []float64{3.3, 4.4},
+			},
+			wantErr: false,
+		},
+		{
+			name: "API call returns error",
+			args: args{
+				cfg: &config.Config{
+					Latitude:  0.0,
+					Longitude: 0.0,
+				},
+			},
+			mockResponse: `{"error": "invalid request"}`,
+			mockStatus:   http.StatusBadRequest,
+			want:         nil,
+			wantErr:      true,
+		},
+		{
+			name: "Invalid latitude and longitude",
+			args: args{
+				cfg: &config.Config{
+					Latitude:  100.0, // Invalid latitude
+					Longitude: 200.0, // Invalid longitude
+				},
+			},
+			mockResponse: "",
+			mockStatus:   0,
+			want:         nil,
+			wantErr:      true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockHttpClient := &mocks.MockClient{
+				DoFunc: func(req *http.Request) (*http.Response, error) {
+					return &http.Response{
+						StatusCode: tt.mockStatus,
+						Body:       io.NopCloser(bytes.NewReader([]byte(tt.mockResponse))),
+					}, nil
+				},
+			}
+
+			om := NewOpenmeteo(mockHttpClient)
+
+			got, err := om.Get(tt.args.cfg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("openmeteo.Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("openmeteo.Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
