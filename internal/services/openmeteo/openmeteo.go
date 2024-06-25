@@ -127,7 +127,10 @@ func (om *openmeteo) Get(cfg *config.Config) (*domain.WeatherData, error) {
 }
 
 func createURL(lat float64, lng float64) (string, error) {
-	if err := services.ValidateCoordinates(lat, lng); err != nil {
+	if err := services.ValidateLongitude(lng); err != nil {
+		return "", err
+	}
+	if err := services.ValidateLatitude(lat); err != nil {
 		return "", err
 	}
 

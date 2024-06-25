@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 	Long:  `CLI app for weather prediction`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Parse yaml config to struct
-		cfg := config.CreateConfig()
+		cfg := config.ReadConfigFile()
 		httpClient := &http.Client{}
 
 		// Switch between weather API by flag
@@ -47,11 +47,11 @@ var rootCmd = &cobra.Command{
 
 		// Update longitude and latitude from flags
 		latFlagValue, err := cmd.Flags().GetFloat64("lat")
-		if err == nil && latFlagValue != 0 {
+		if err == nil && latFlagValue != -10_000 {
 			cfg.Latitude = latFlagValue
 		}
 		lonFlagValue, err := cmd.Flags().GetFloat64("lon")
-		if err == nil && lonFlagValue != 0 {
+		if err == nil && lonFlagValue != -10_000 {
 			cfg.Longitude = lonFlagValue
 		}
 
@@ -82,7 +82,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().Float64P("lat", "", 0, "Forecasting latitude")
-	rootCmd.PersistentFlags().Float64P("lon", "", 0, "Forecasting longitude")
+	_ = config.ReadConfigFile() // pass config deeper
+	rootCmd.PersistentFlags().Float64P("lat", "", -10_000, "Forecasting latitude")
+	rootCmd.PersistentFlags().Float64P("lon", "", -10_000, "Forecasting longitude")
 	rootCmd.PersistentFlags().StringP("api", "w", "", "Weather API client")
 }

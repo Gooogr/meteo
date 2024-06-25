@@ -135,7 +135,10 @@ func (mb *meteoblue) Get(cfg *config.Config) (*domain.WeatherData, error) {
 }
 
 func createURL(lat, lng float64, apiKey, sharedSecret string) (string, error) {
-	if err := services.ValidateCoordinates(lat, lng); err != nil {
+	if err := services.ValidateLongitude(lng); err != nil {
+		return "", err
+	}
+	if err := services.ValidateLatitude(lat); err != nil {
 		return "", err
 	}
 
