@@ -3,5 +3,5 @@ package openmeteo
 import "net/http"
 
 type httpClient interface {
-	Get(string) (*http.Response, error)
+	Get(url string) (*http.Response, error)
 }

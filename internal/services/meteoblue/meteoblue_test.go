@@ -107,8 +107,9 @@ func Test_meteoblue_fetchMeteoblueData(t *testing.T) {
 
 func Test_meteoblue_Get(t *testing.T) {
 	type args struct {
-		cfg *config.Config
+		cfg config.Config
 	}
+
 	tests := []struct {
 		name         string
 		args         args
@@ -120,11 +121,15 @@ func Test_meteoblue_Get(t *testing.T) {
 		{
 			name: "successful API call",
 			args: args{
-				cfg: &config.Config{
-					Latitude:                 0.0,
-					Longitude:                0.0,
-					MeteoblueAPIKey:          "meteoblue-api-key",
-					MeteoblueAPISharedSecret: "meteoblue-shared-secret",
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  0.0,
+						Longitude: 0.0,
+					},
+					Meteoblue: config.Meteoblue{
+						APIKey:          "meteoblue-api-key",
+						APISharedSecret: "meteoblue-shared-secret",
+					},
 				},
 			},
 			mockResponse: `{
@@ -153,11 +158,15 @@ func Test_meteoblue_Get(t *testing.T) {
 		{
 			name: "API call returns error",
 			args: args{
-				cfg: &config.Config{
-					Latitude:                 0.0,
-					Longitude:                0.0,
-					MeteoblueAPIKey:          "meteoblue-api-key",
-					MeteoblueAPISharedSecret: "meteoblue-shared-secret",
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  0.0,
+						Longitude: 0.0,
+					},
+					Meteoblue: config.Meteoblue{
+						APIKey:          "meteoblue-api-key",
+						APISharedSecret: "meteoblue-shared-secret",
+					},
 				},
 			},
 			mockResponse: `{"error": "invalid request"}`,
@@ -168,11 +177,15 @@ func Test_meteoblue_Get(t *testing.T) {
 		{
 			name: "Invalid latitude and longitude",
 			args: args{
-				cfg: &config.Config{
-					Latitude:                 100.0, // Invalid latitude
-					Longitude:                200.0, // Invalid longitude
-					MeteoblueAPIKey:          "meteoblue-api-key",
-					MeteoblueAPISharedSecret: "meteoblue-shared-secret",
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  100.0, // Invalid latitude
+						Longitude: 200.0, // Invalid longitude
+					},
+					Meteoblue: config.Meteoblue{
+						APIKey:          "meteoblue-api-key",
+						APISharedSecret: "meteoblue-shared-secret",
+					},
 				},
 			},
 			mockResponse: "",
@@ -192,9 +205,15 @@ func Test_meteoblue_Get(t *testing.T) {
 				},
 			}
 
-			mb := NewMeteoblue(mockHttpClient)
+			ttConf := tt.args.cfg
+			mb := NewMeteoblue(
+				mockHttpClient,
+				ttConf,
+			)
+			lat := ttConf.CommonConfig().Latitude
+			lon := ttConf.CommonConfig().Longitude
 
-			got, err := mb.Get(tt.args.cfg)
+			got, err := mb.Get(lat, lon)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("meteoblue.Get() error = %v, wantErr %v", err, tt.wantErr)
 				return

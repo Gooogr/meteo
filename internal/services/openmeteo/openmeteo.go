@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"meteo/config"
 	"meteo/internal/domain"
 	"meteo/internal/dto"
 	"meteo/internal/services"
+	"meteo/internal/utils"
 )
 
 const baseURL = "https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f"
@@ -94,8 +94,8 @@ func (om *openmeteo) fetchOpenmeteoData(url string) (*domain.OpenmeteoWeatherDat
 	return data, nil
 }
 
-func (om *openmeteo) Get(cfg *config.Config) (*domain.WeatherData, error) {
-	url, err := createURL(cfg.Latitude, cfg.Longitude)
+func (om *openmeteo) Get(latitude, longitude float64) (*domain.WeatherData, error) {
+	url, err := createURL(latitude, longitude)
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +127,10 @@ func (om *openmeteo) Get(cfg *config.Config) (*domain.WeatherData, error) {
 }
 
 func createURL(lat float64, lng float64) (string, error) {
-	if err := services.ValidateLongitude(lng); err != nil {
+	if err := utils.ValidateLongitude(lng); err != nil {
 		return "", err
 	}
-	if err := services.ValidateLatitude(lat); err != nil {
+	if err := utils.ValidateLatitude(lat); err != nil {
 		return "", err
 	}
 

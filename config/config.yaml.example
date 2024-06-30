@@ -1,10 +1,10 @@
-latitude: 0.0
-longitude: 0.0
-
-# Possible API names: openmeteo/meteoblue
-default-api: openmeteo 
-
-# Meteoblue API. 
-# How to get access: https://www.meteoblue.com/de/weather-api/apikey 
-meteoblue-api-key: my-secret-key
-meteoblue-shared-secret: my-shared-secret
+common:
+    latitude: 0.0
+    longitude: 0.0
+    # Possible API names: openmeteo/meteoblue
+    default-api: openmeteo
+meteoblue:
+    # Meteoblue API.
+    # How to get access: https://www.meteoblue.com/de/weather-api/apikey
+    api-key: my-secret-key
+    shared-secret: my-shared-secret

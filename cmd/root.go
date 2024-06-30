@@ -26,18 +26,22 @@ var rootCmd = &cobra.Command{
 	Long:  `CLI app for weather prediction`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Parse yaml config to struct
-		cfg := config.ReadConfigFile()
+		cfg := config.NewConfig()
+		cfgCommon := cfg.CommonConfig()
 		httpClient := &http.Client{}
 
 		// Switch between weather API by flag
 		apiFlagValue, _ := cmd.Flags().GetString("api")
 		if apiFlagValue == "" {
-			apiFlagValue = cfg.DefaultAPI
+			apiFlagValue = cfgCommon.DefaultAPI
 		}
 
 		var weatherService services.Contract
 		if apiFlagValue == MeteoblueName {
-			weatherService = meteoblue.NewMeteoblue(httpClient)
+			weatherService = meteoblue.NewMeteoblue(
+				httpClient,
+				cfg,
+			)
 		} else if apiFlagValue == OpenmeteoName {
 			weatherService = openmeteo.NewOpenmeteo(httpClient)
 		} else {
@@ -46,28 +50,31 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Update longitude and latitude from flags
+		latValue := cfgCommon.Latitude
+		lonValue := cfgCommon.Longitude
+
 		latFlagValue, err := cmd.Flags().GetFloat64("lat")
 		if err == nil && latFlagValue != -10_000 {
-			cfg.Latitude = latFlagValue
+			latValue = latFlagValue
 		}
 		lonFlagValue, err := cmd.Flags().GetFloat64("lon")
 		if err == nil && lonFlagValue != -10_000 {
-			cfg.Longitude = lonFlagValue
+			lonValue = lonFlagValue
 		}
 
 		// TODO: pass coordinates into display part
-		fmt.Printf("Latitude: %f \n", cfg.Latitude)
-		fmt.Printf("Longitude: %f \n", cfg.Longitude)
+		fmt.Printf("Latitude: %f \n", latValue)
+		fmt.Printf("Longitude: %f \n", lonValue)
 
 		// Get weather data
-		weatherData, err := weatherService.Get(cfg)
+		weatherData, err := weatherService.Get(latValue, lonValue)
 		if err != nil {
 			fmt.Printf("Error fetching weather data: %v\n", err)
 			os.Exit(1)
 		}
 
 		// Render table
-		timezone := timezonemapper.LatLngToTimezoneString(cfg.Latitude, cfg.Longitude)
+		timezone := timezonemapper.LatLngToTimezoneString(latValue, lonValue)
 		display.DisplayTable(weatherData, timezone)
 	},
 }
@@ -82,7 +89,7 @@ func Execute() {
 }
 
 func init() {
-	_ = config.ReadConfigFile() // pass config deeper
+	_ = config.NewConfig() // pass config deeper
 	rootCmd.PersistentFlags().Float64P("lat", "", -10_000, "Forecasting latitude")
 	rootCmd.PersistentFlags().Float64P("lon", "", -10_000, "Forecasting longitude")
 	rootCmd.PersistentFlags().StringP("api", "w", "", "Weather API client")

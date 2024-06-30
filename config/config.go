@@ -10,15 +10,27 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct {
-	Latitude                 float64 `mapstructure:"latitude" validate:"required"`
-	Longitude                float64 `mapstructure:"longitude" validate:"required"`
-	DefaultAPI               string  `mapstructure:"default-api" validate:"required"`
-	MeteoblueAPIKey          string  `mapstructure:"meteoblue-api-key"`
-	MeteoblueAPISharedSecret string  `mapstructure:"meteoblue-shared-secret"`
+type Conf struct {
+	Common    `mapstructure:"common" validate:"required"`
+	Meteoblue `mapstructure:"meteoblue" validate:"required"`
 }
 
-func ReadConfigFile() *Config {
+type Common struct {
+	Latitude   float64 `mapstructure:"latitude" validate:"required"`
+	Longitude  float64 `mapstructure:"longitude" validate:"required"`
+	DefaultAPI string  `mapstructure:"default-api" validate:"required"`
+}
+
+type Meteoblue struct {
+	APIKey          string `mapstructure:"api-key" validate:"required"`
+	APISharedSecret string `mapstructure:"shared-secret" validate:"required"`
+}
+
+func NewConfig() Config {
+	return readConfigFile()
+}
+
+func readConfigFile() Config {
 	// Read default yaml config file
 	viper.SetConfigType("yaml")
 	viper.SetConfigName("config")
@@ -46,10 +58,10 @@ func ReadConfigFile() *Config {
 	if err := validate.Struct(&cfg); err != nil {
 		log.Fatalf("missing required attributes %v\n", err)
 	}
-	return &cfg
+	return cfg
 }
 
-func UpdateConfigFile(key string, value interface{}) {
+func (cf Conf) UpdateConfigFile(key string, value interface{}) {
 	// Read default yaml config file
 	viper.SetConfigType("yaml")
 	viper.SetConfigName("config")
@@ -89,4 +101,12 @@ func UpdateConfigFile(key string, value interface{}) {
 	if err != nil {
 		log.Fatalf("failed to write updated YAML file: %v", err)
 	}
+}
+
+func (cf Conf) CommonConfig() Common {
+	return cf.Common
+}
+
+func (cf Conf) MeteoblueConfig() Meteoblue {
+	return cf.Meteoblue
 }

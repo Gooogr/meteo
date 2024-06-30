@@ -105,7 +105,7 @@ func Test_openmeteo_fetchOpenmeteoData(t *testing.T) {
 
 func Test_openmeteo_Get(t *testing.T) {
 	type args struct {
-		cfg *config.Config
+		cfg config.Config
 	}
 	tests := []struct {
 		name         string
@@ -118,9 +118,11 @@ func Test_openmeteo_Get(t *testing.T) {
 		{
 			name: "successful API call",
 			args: args{
-				cfg: &config.Config{
-					Latitude:  0.0,
-					Longitude: 0.0,
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  0.0,
+						Longitude: 0.0,
+					},
 				},
 			},
 			mockResponse: `{
@@ -147,9 +149,11 @@ func Test_openmeteo_Get(t *testing.T) {
 		{
 			name: "API call returns error",
 			args: args{
-				cfg: &config.Config{
-					Latitude:  0.0,
-					Longitude: 0.0,
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  0.0,
+						Longitude: 0.0,
+					},
 				},
 			},
 			mockResponse: `{"error": "invalid request"}`,
@@ -160,9 +164,11 @@ func Test_openmeteo_Get(t *testing.T) {
 		{
 			name: "Invalid latitude and longitude",
 			args: args{
-				cfg: &config.Config{
-					Latitude:  100.0, // Invalid latitude
-					Longitude: 200.0, // Invalid longitude
+				cfg: &config.Conf{
+					Common: config.Common{
+						Latitude:  100.0, // Invalid latitude
+						Longitude: 200.0, // Invalid longitude
+					},
 				},
 			},
 			mockResponse: "",
@@ -182,9 +188,12 @@ func Test_openmeteo_Get(t *testing.T) {
 				},
 			}
 
+			ttConf := tt.args.cfg
+			lat := ttConf.CommonConfig().Latitude
+			lon := ttConf.CommonConfig().Longitude
 			om := NewOpenmeteo(mockHttpClient)
 
-			got, err := om.Get(tt.args.cfg)
+			got, err := om.Get(lat, lon)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("openmeteo.Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
