@@ -43,7 +43,7 @@ func readConfigFile() Config {
 	viper.AddConfigPath(configDir)
 	viper.AutomaticEnv()
 
-	var cfg Config
+	var cfg Conf
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("read error %v", err)
